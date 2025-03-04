@@ -24,6 +24,11 @@ sampleIDs_file <- args[2] # Sample ID file (e.g. it_rnaseq2_sampleIDs.csv)
 batch_file <- args[3] 		# batch list file (full_sequenced_batches.csv)
 output_dir <- args[4]     # Output directory
 
+# Ensure output directory ends with a slash (for safe concatenation)
+if (!grepl("/$", output_dir)) {
+	output_dir <- paste0(output_dir, "/")
+}
+
 #read in input files
 df <- read.csv(counts_file, header = T)
 sample_key <- read.csv(sampleIDs_file, header = T)
