@@ -16,10 +16,13 @@ library(car) #for glmmTMB anova
 #The lsmeans package is being deprecated and further development will take place in its successor, emmeans.
 #Users may use emmeans in almost exactly the same way as lsmeans, but a few function names and internal details are changed.
 
+args <- commandArgs(trailingOnly = TRUE)
+
 #assign input files to specific variables
 counts_file <- args[1]		# Counts file (norm_counts_expressed.csv)
 sampleIDs_file <- args[2] # Sample ID file (e.g. it_rnaseq2_sampleIDs.csv)
 batch_file <- args[3] 		# batch list file (full_sequenced_batches.csv)
+output_dir <- args[4]     # Output directory
 
 #read in input files
 df <- read.csv(counts_file, header = T)
@@ -296,10 +299,11 @@ for (gene in genes) {
 }
 
 #write out results
-write.csv(anova_all, "anova.csv", row.names = F)
-write.csv(emm_df, "adjusted_emmeans.csv", row.names = F)
-write.csv(SE_df, "adjusted_SE.csv", row.names = F)
-write.csv(inf_DEG_all, "DEGs_infected.csv", row.names = F)
+dir.create(output_dir)
+write.csv(anova_all, paste0(output_dir, "anova.csv"), row.names = F)
+write.csv(emm_df, paste0(output_dir, "adjusted_emmeans.csv"), row.names = F)
+write.csv(SE_df, paste0(output_dir, "adjusted_SE.csv"), row.names = F)
+write.csv(inf_DEG_all, paste0(output_dir, "DEGs_infected.csv"), row.names = F)
 
 # Report the failed genes
 print("The following genes caused errors:")
@@ -309,4 +313,4 @@ failed_genes_df <- data.frame(gene = failed_genes)
 failed_genes_df <- t(failed_genes_df) 
 colnames(failed_genes_df) <- "failed_gene"
 # Save the dataframe as a CSV file
-write.csv(failed_genes_df, "failed_genes.csv", row.names = FALSE)
+write.csv(failed_genes_df, paste0(output_dir, "failed_genes.csv"), row.names = FALSE)
