@@ -88,7 +88,7 @@ df <- pivot_wider(df_long,
 #get list of genes to iterate through
 genes <- unique(df_long$gene)
 genes <- as.character(genes)
-#genes <- genes[320:330] #subset for testing
+genes <- genes[14904:14909] #subset for testing
 
 #set up dataframe with first gene in the list
 gene <- genes[1]
