@@ -88,7 +88,7 @@ df <- pivot_wider(df_long,
 #get list of genes to iterate through
 genes <- unique(df_long$gene)
 genes <- as.character(genes)
-genes <- genes[320:330] #subset for testing
+#genes <- genes[320:330] #subset for testing
 
 #set up dataframe with first gene in the list
 gene <- genes[1]
@@ -316,6 +316,6 @@ print(failed_genes)
 # Convert the list of failed genes to a dataframe
 failed_genes_df <- data.frame(gene = failed_genes)
 failed_genes_df <- t(failed_genes_df) 
-colnames(failed_genes_df) <- "failed_gene"
+#colnames(failed_genes_df) <- "failed_gene"
 # Save the dataframe as a CSV file
 write.csv(failed_genes_df, paste0(output_dir, "failed_genes.csv"), row.names = FALSE)

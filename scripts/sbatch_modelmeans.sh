@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -D /home/ajmuhich/model_means/IT/
+#SBATCH -D /home/ajmuhich/model_means/UCC/
 #SBATCH -o /home/ajmuhich/slurm-log/model_means_stdout-%j.txt
 #SBATCH -e /home/ajmuhich/slurm-log/model_means_stderr-%j.txt
 #SBATCH -J model_means
