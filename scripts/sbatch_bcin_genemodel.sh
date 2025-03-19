@@ -11,5 +11,5 @@
 
 module load R
 
-R CMD BATCH scripts/bcin_genemodel.R
+R CMD BATCH ~/co-transcriptome/scripts/bcin_genemodel.R
 
