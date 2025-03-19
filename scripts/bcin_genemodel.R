@@ -9,16 +9,16 @@ library(emmeans)
 library(car)
 
 #load count file for each host
-pv <- read.csv("input/Pv/norm_counts_expressed.csv")
-vu <- read.csv("input/Vu/norm_counts_expressed.csv")
+pv <- read.csv("~/bcin_genemodel/input/Pv/norm_counts_expressed.csv")
+vu <- read.csv("~/bcin_genemodel/input/Vu/norm_counts_expressed.csv")
 
 #load sample key for each host
-pv_sample_key <- read.csv("input/Pv/ucc_rnaseq_sampleIDs.csv")
-vu_sample_key <- read.csv("input/Vu/it_rnaseq2_sampleIDs.csv")
+pv_sample_key <- read.csv("~/bcin_genemodel/input/Pv/ucc_rnaseq_sampleIDs.csv")
+vu_sample_key <- read.csv("~/bcin_genemodel/input/Vu/it_rnaseq2_sampleIDs.csv")
 
 #load seq batch info for each host
-pv_seq_batch <- read.csv("input/Pv/full_sequenced_batches.csv")
-vu_seq_batch <- read.csv("input/Vu/full_sequenced_batches.csv")
+pv_seq_batch <- read.csv("~/bcin_genemodel/input/Pv/full_sequenced_batches.csv")
+vu_seq_batch <- read.csv("~/bcin_genemodel/input/Vu/full_sequenced_batches.csv")
 
 
 ### Prepare exp design info =======================
@@ -234,8 +234,8 @@ for (gene in genes) {
 }
 
 #write out results
-dir.create("output")
-write.csv(emm_df, "output/bcin_adjusted_emmeans.csv", row.names = F)
-write.csv(SE_df, "output/bcin_adjusted_SE.csv", row.names = F)
-write.csv(anova_all, "output/bcin_anova.csv", row.names = F)
-write.csv(failed_genes, "output/failed_genes.csv", row.names = FALSE)
+dir.create("~/bcin_genemodel/output")
+write.csv(emm_df, "~/bcin_genemodel/output/bcin_adjusted_emmeans.csv", row.names = F)
+write.csv(SE_df, "~/bcin_genemodel/output/bcin_adjusted_SE.csv", row.names = F)
+write.csv(anova_all, "~/bcin_genemodel/output/bcin_anova.csv", row.names = F)
+write.csv(failed_genes, "~/bcin_genemodel/output/failed_genes.csv", row.names = FALSE)
