@@ -1,6 +1,6 @@
 ##### Bcin gene model - Fabales
 ##### For comparison of Bcin gene expression across multiple hosts
-##### March 2025 AJM
+##### May 2025 AJM
 
 ### Load packages and data ===================
 library(tidyverse)
@@ -152,6 +152,25 @@ SE_df <- SE_df %>%
 colnames(emm_df)[3] <- gene
 colnames(SE_df)[3] <- gene
 
+#gather DEG infected data
+#get infected emmeans. note this is natural log scale
+emmresult <- emmeans(model, specs = "genotype")
+#compute pairwise contrasts for DEGs
+#revpairwise will give UCC - IT (common bean - cowpea)
+#so negative values means higher cowpea mean, positive values means higher common bean mean
+DEG <- contrast(emmresult, method = "revpairwise")
+DEG <- summary(DEG)
+#convert to log2 scale
+DEG$estimate <- DEG$estimate / log(2)
+DEG$SE <- DEG$SE / log(2)
+#change 'estimate' column to 'log2FC'
+DEG <- DEG %>% rename(log2FC = estimate)
+#add column for gene
+DEG$gene <- gene
+DEG <- DEG %>% select(gene, everything())
+#set up a new dataframe to collect looped results
+DEG_all <- DEG
+
 #adjust gene list
 genes <- genes[-1]
 
@@ -226,6 +245,25 @@ for (gene in genes) {
 		SE_toadd <- emmsummary$SE %>% as.data.frame()
 		colnames(SE_toadd) <- gene
 		SE_df <- cbind(SE_df, SE_toadd)
+		
+		#gather DEG infected data
+		#get infected emmeans. note this is natural log scale
+		emmresult <- emmeans(model, specs = "genotype")
+		#compute pairwise contrasts for DEGs
+		#revpairwise will give UCC - IT (common bean - cowpea)
+		#so negative values means higher cowpea mean, positive values means higher common bean mean
+		DEG <- contrast(emmresult, method = "revpairwise")
+		DEG <- summary(DEG)
+		#convert to log2 scale
+		DEG$estimate <- DEG$estimate / log(2)
+		DEG$SE <- DEG$SE / log(2)
+		#change 'estimate' column to 'log2FC'
+		DEG <- DEG %>% rename(log2FC = estimate)
+		#add column for gene
+		DEG$gene <- gene
+		DEG <- DEG %>% select(gene, everything())
+		DEG_all <- rbind(DEG_all, DEG)
+		
 	}, error = function(e) {
 		# Handle error: add gene to failed list and print a message
 		print(paste("Error encountered for gene:", gene, "Skipping..."))
@@ -238,4 +276,5 @@ dir.create("~/bcin_genemodel/output")
 write.csv(emm_df, "~/bcin_genemodel/output/bcin_adjusted_emmeans.csv", row.names = F)
 write.csv(SE_df, "~/bcin_genemodel/output/bcin_adjusted_SE.csv", row.names = F)
 write.csv(anova_all, "~/bcin_genemodel/output/bcin_anova.csv", row.names = F)
+write.csv(DEG_all, "~/bcin_genemodel/output/bcin_DEGs.csv", row.names = F)
 write.csv(failed_genes, "~/bcin_genemodel/output/failed_genes.csv", row.names = FALSE)
