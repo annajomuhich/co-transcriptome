@@ -10,12 +10,12 @@ library(edgeR)
 ######## Load data ================================
 
 #### Specify input paths - MAKE CHANGES HERE
-hostrep1_path <- "co-transcriptome/raw_reads/badQC_removed/IT1/Host_readcounts.csv"
-hostrep2_path <- "co-transcriptome/raw_reads/badQC_removed/IT2/Host_readcounts.csv"
-hostrep3_path <- "co-transcriptome/raw_reads/badQC_removed/IT3/Host_readcounts.csv"
-bcinrep1_path <- "co-transcriptome/raw_reads/badQC_removed/IT1/Bcin_readcounts.csv"
-bcinrep2_path <- "co-transcriptome/raw_reads/badQC_removed/IT2/Bcin_readcounts.csv"
-bcinrep3_path <- "co-transcriptome/raw_reads/badQC_removed/IT3/Bcin_readcounts.csv"
+hostrep1_path <- "raw_reads/badQC_removed/IT1/Host_readcounts.csv"
+hostrep2_path <- "raw_reads/badQC_removed/IT2/Host_readcounts.csv"
+hostrep3_path <- "raw_reads/badQC_removed/IT3/Host_readcounts.csv"
+bcinrep1_path <- "raw_reads/badQC_removed/IT1/Bcin_readcounts.csv"
+bcinrep2_path <- "raw_reads/badQC_removed/IT2/Bcin_readcounts.csv"
+bcinrep3_path <- "raw_reads/badQC_removed/IT3/Bcin_readcounts.csv"
 ####
 	
 #read in data
@@ -77,7 +77,7 @@ bcin <- bcin[rowSums(bcin[, -1] == 0) != ncol(bcin) - 1, ]
 ####### Make norm_counts_all for host ========================================
 #has 0HAI mock and no further low readcount filtering
 
-dir.create("co-transcriptome/normalized_counts")
+dir.create("normalized_counts")
 
 ### reformat as matrix where colnames are samples, rownames are genes, and cells contain numeric read counts
 count_data <- host
@@ -102,7 +102,7 @@ normalized_counts <- cpm(dge, normalized.lib.sizes = T)
 normalized_counts <- as.data.frame(normalized_counts)
 normalized_counts <- rownames_to_column(normalized_counts,var = "gene")
 #write csv
-write.csv(normalized_counts, "co-transcriptome/normalized_counts/host_norm_counts_all.csv", row.names = F, col.names = T)
+write.csv(normalized_counts, "normalized_counts/host_norm_counts_all.csv", row.names = F, col.names = T)
 
 ####### Make norm_counts_all for Botrytis ========================================
 #has 0HAI mock and no further low readcount filtering
@@ -130,7 +130,7 @@ normalized_counts <- cpm(dge, normalized.lib.sizes = T)
 normalized_counts <- as.data.frame(normalized_counts)
 normalized_counts <- rownames_to_column(normalized_counts,var = "gene")
 #write csv
-write.csv(normalized_counts, "co-transcriptome/normalized_counts/bcin_norm_counts_all.csv", row.names = F, col.names = T)
+write.csv(normalized_counts, "normalized_counts/bcin_norm_counts_all.csv", row.names = F, col.names = T)
 
 ####### Make norm_counts_expressed for host ========================================
 
@@ -181,7 +181,7 @@ removed_genes_host2$removal_reason <- "low readcount"
 removed_genes_host2 <- removed_genes_host2 %>% rename(gene = removed_genes_host2)
 removed_genes_host$removal_reason <- "no readcount"
 removed_genes_host <- rbind(removed_genes_host, removed_genes_host2)
-removed_genes_host %>% write.csv("co-transcriptome/normalized_counts/host_removed_genes.csv", row.names = F)
+removed_genes_host %>% write.csv("normalized_counts/host_removed_genes.csv", row.names = F)
 
 #visualize cpm frequencies
 cpms <- log2(cpm(dge) + 1)
@@ -204,7 +204,7 @@ normalized_counts <- as.data.frame(normalized_counts)
 normalized_counts <- rownames_to_column(normalized_counts,var = "gene")
 
 #write csv
-write.csv(normalized_counts, "co-transcriptome/normalized_counts/host_norm_counts_expressed.csv", row.names = F, col.names = T)
+write.csv(normalized_counts, "normalized_counts/host_norm_counts_expressed.csv", row.names = F, col.names = T)
 
 ####### Make norm_counts_expressed for Botrytis ========================================
 
@@ -255,7 +255,7 @@ removed_genes_bcin2$removal_reason <- "low readcount"
 removed_genes_bcin2 <- removed_genes_bcin2 %>% rename(gene = removed_genes_bcin2)
 removed_genes_bcin$removal_reason <- "no readcount"
 removed_genes_bcin <- rbind(removed_genes_bcin, removed_genes_bcin2)
-removed_genes_bcin %>% write.csv("co-transcriptome/normalized_counts/bcin_removed_genes.csv", row.names = F)
+removed_genes_bcin %>% write.csv("normalized_counts/bcin_removed_genes.csv", row.names = F)
 
 #visualize cpm frequencies
 cpms <- log2(cpm(dge) + 1)
@@ -278,7 +278,7 @@ normalized_counts <- as.data.frame(normalized_counts)
 normalized_counts <- rownames_to_column(normalized_counts,var = "gene")
 
 #write csv
-write.csv(normalized_counts, "co-transcriptome/normalized_counts/bcin_norm_counts_expressed.csv", row.names = F, col.names = T)
+write.csv(normalized_counts, "normalized_counts/bcin_norm_counts_expressed.csv", row.names = F, col.names = T)
 
 
 

@@ -19,7 +19,6 @@ if (!grepl("/$", output_dir)) {
 	output_dir <- paste0(output_dir, "/")
 }
 
-
 ### Load packages and data ===================
 library(tidyverse)
 library(glmmTMB)
@@ -290,6 +289,7 @@ for (gene in genes) {
 }
 
 #write out results
+
 dir.create(output_dir)
 write.csv(emm_df, paste0(output_dir, "bcin_adjusted_emmeans.csv"), row.names = F)
 write.csv(SE_df, paste0(output_dir, "bcin_adjusted_SE.csv"), row.names = F)
