@@ -1,6 +1,24 @@
 ##### Bcin gene model - Fabales
-##### For comparison of Bcin gene expression across multiple hosts
-##### March 2025 AJM
+##### For comparison of Bcin gene expression across 2 hosts
+##### May 2025 AJM
+
+### Define paths from arguments =====================
+args <- commandArgs(trailingOnly = TRUE)
+
+#assign input files to specific variables
+pv_counts_file <- args[1]		# Counts file (host_norm_counts_expressed.csv)
+vu_counts_file <- args[2]   # Counts file for other host (host_norm_counts_expressed.csv)
+pv_sampleIDs_file <- args[3] # Sample ID file (e.g. ucc_rnaseq2_sampleIDs.csv)
+vu_sampleIDs_file <- args[4] # Sample ID file for other host (e.g. it_rnaseq2_sampleIDs.csv)
+pv_batch_file <- args[5] 		# batch list file (full_sequenced_batches.csv)
+vu_batch_file <- args[6] 		# batch list file for other host (full_sequenced_batches.csv)
+output_dir <- args[7]     # Output directory
+
+# Ensure output directory ends with a slash (for safe concatenation)
+if (!grepl("/$", output_dir)) {
+	output_dir <- paste0(output_dir, "/")
+}
+
 
 ### Load packages and data ===================
 library(tidyverse)
@@ -9,16 +27,16 @@ library(emmeans)
 library(car)
 
 #load count file for each host
-pv <- read.csv("~/bcin_genemodel/input/Pv/norm_counts_expressed.csv")
-vu <- read.csv("~/bcin_genemodel/input/Vu/norm_counts_expressed.csv")
+pv <- read.csv(pv_counts_file)
+vu <- read.csv(vu_counts_file)
 
 #load sample key for each host
-pv_sample_key <- read.csv("~/bcin_genemodel/input/Pv/ucc_rnaseq_sampleIDs.csv")
-vu_sample_key <- read.csv("~/bcin_genemodel/input/Vu/it_rnaseq2_sampleIDs.csv")
+pv_sample_key <- read.csv(pv_sampleIDs_file)
+vu_sample_key <- read.csv(vu_sampleIDs_file)
 
 #load seq batch info for each host
-pv_seq_batch <- read.csv("~/bcin_genemodel/input/Pv/full_sequenced_batches.csv")
-vu_seq_batch <- read.csv("~/bcin_genemodel/input/Vu/full_sequenced_batches.csv")
+pv_seq_batch <- read.csv(pv_batch_file)
+vu_seq_batch <- read.csv(vu_batch_file)
 
 
 ### Prepare exp design info =======================
@@ -152,6 +170,25 @@ SE_df <- SE_df %>%
 colnames(emm_df)[3] <- gene
 colnames(SE_df)[3] <- gene
 
+#gather DEG infected data
+#get infected emmeans. note this is natural log scale
+emmresult <- emmeans(model, specs = "genotype")
+#compute pairwise contrasts for DEGs
+#revpairwise will give UCC - IT (common bean - cowpea)
+#so negative values means higher cowpea mean, positive values means higher common bean mean
+DEG <- contrast(emmresult, method = "revpairwise")
+DEG <- summary(DEG)
+#convert to log2 scale
+DEG$estimate <- DEG$estimate / log(2)
+DEG$SE <- DEG$SE / log(2)
+#change 'estimate' column to 'log2FC'
+DEG <- DEG %>% rename(log2FC = estimate)
+#add column for gene
+DEG$gene <- gene
+DEG <- DEG %>% select(gene, everything())
+#set up a new dataframe to collect looped results
+DEG_all <- DEG
+
 #adjust gene list
 genes <- genes[-1]
 
@@ -226,6 +263,25 @@ for (gene in genes) {
 		SE_toadd <- emmsummary$SE %>% as.data.frame()
 		colnames(SE_toadd) <- gene
 		SE_df <- cbind(SE_df, SE_toadd)
+		
+		#gather DEG infected data
+		#get infected emmeans. note this is natural log scale
+		emmresult <- emmeans(model, specs = "genotype")
+		#compute pairwise contrasts for DEGs
+		#revpairwise will give UCC - IT (common bean - cowpea)
+		#so negative values means higher cowpea mean, positive values means higher common bean mean
+		DEG <- contrast(emmresult, method = "revpairwise")
+		DEG <- summary(DEG)
+		#convert to log2 scale
+		DEG$estimate <- DEG$estimate / log(2)
+		DEG$SE <- DEG$SE / log(2)
+		#change 'estimate' column to 'log2FC'
+		DEG <- DEG %>% rename(log2FC = estimate)
+		#add column for gene
+		DEG$gene <- gene
+		DEG <- DEG %>% select(gene, everything())
+		DEG_all <- rbind(DEG_all, DEG)
+		
 	}, error = function(e) {
 		# Handle error: add gene to failed list and print a message
 		print(paste("Error encountered for gene:", gene, "Skipping..."))
@@ -234,8 +290,9 @@ for (gene in genes) {
 }
 
 #write out results
-dir.create("~/bcin_genemodel/output")
-write.csv(emm_df, "~/bcin_genemodel/output/bcin_adjusted_emmeans.csv", row.names = F)
-write.csv(SE_df, "~/bcin_genemodel/output/bcin_adjusted_SE.csv", row.names = F)
-write.csv(anova_all, "~/bcin_genemodel/output/bcin_anova.csv", row.names = F)
-write.csv(failed_genes, "~/bcin_genemodel/output/failed_genes.csv", row.names = FALSE)
+dir.create(output_dir)
+write.csv(emm_df, paste0(output_dir, "bcin_adjusted_emmeans.csv"), row.names = F)
+write.csv(SE_df, paste0(output_dir, "bcin_adjusted_SE.csv"), row.names = F)
+write.csv(anova_all, paste0(output_dir, "bcin_anova.csv"), row.names = F)
+write.csv(DEG_all, paste0(output_dir, "bcin_DEGs.csv"), row.names = F)
+write.csv(failed_genes, paste0(output_dir, "failed_genes.csv"), row.names = FALSE)
