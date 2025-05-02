@@ -20,11 +20,9 @@ BATCH_FILE1=$5
 BATCH_FILE2=$6
 OUTPUT_DIR=$7
 
-Rscript ~/co-transcriptome/scripts/model_means.R \
+Rscript ~/co-transcriptome/scripts/bcin_genemodel.R \
 "$COUNTS_FILE1" "$COUNTS_FILE2" \
 "$SAMPLEID_FILE1" "$SAMPLEID_FILE2" \
 "$BATCH_FILE1" "$BATCH_FILE2" \
 "$OUTPUT_DIR"
-
-R CMD BATCH ~/co-transcriptome/scripts/bcin_genemodel.R
 
