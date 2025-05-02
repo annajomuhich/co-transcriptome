@@ -26,15 +26,21 @@ library(emmeans)
 library(car)
 
 #load count file for each host
+message("Loading Pv counts file: ", pv_counts_file)
 pv <- read.csv(pv_counts_file)
+message("Loading Vu counts file: ", vu_counts_file)
 vu <- read.csv(vu_counts_file)
 
 #load sample key for each host
+message("Loading Pv sample IDs file: ", pv_sampleIDs_file)
 pv_sample_key <- read.csv(pv_sampleIDs_file)
+message("Loading Vu sample IDs file: ", vu_sampleIDs_file)
 vu_sample_key <- read.csv(vu_sampleIDs_file)
 
 #load seq batch info for each host
+message("Loading Pv batch file: ", pv_batch_file)
 pv_seq_batch <- read.csv(pv_batch_file)
+message("Loading Vu batch file: ", vu_batch_file)
 vu_seq_batch <- read.csv(vu_batch_file)
 
 
@@ -290,6 +296,7 @@ for (gene in genes) {
 
 #write out results
 
+message("Writing results to output directory: ", output_dir)
 dir.create(output_dir)
 write.csv(emm_df, paste0(output_dir, "bcin_adjusted_emmeans.csv"), row.names = F)
 write.csv(SE_df, paste0(output_dir, "bcin_adjusted_SE.csv"), row.names = F)
