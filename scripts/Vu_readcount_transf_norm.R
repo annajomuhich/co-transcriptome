@@ -78,6 +78,8 @@ bcin <- bcin[rowSums(bcin[, -1] == 0) != ncol(bcin) - 1, ]
 #has 0HAI mock and no further low readcount filtering
 
 dir.create("normalized_counts")
+dir.create("normalized_counts/Vu/")
+setwd("normalized_counts/Vu/")
 
 ### reformat as matrix where colnames are samples, rownames are genes, and cells contain numeric read counts
 count_data <- host
@@ -102,7 +104,7 @@ normalized_counts <- cpm(dge, normalized.lib.sizes = T)
 normalized_counts <- as.data.frame(normalized_counts)
 normalized_counts <- rownames_to_column(normalized_counts,var = "gene")
 #write csv
-write.csv(normalized_counts, "normalized_counts/host_norm_counts_all.csv", row.names = F, col.names = T)
+write.csv(normalized_counts, "host_norm_counts_all.csv", row.names = F, col.names = T)
 
 ####### Make norm_counts_all for Botrytis ========================================
 #has 0HAI mock and no further low readcount filtering
@@ -130,7 +132,7 @@ normalized_counts <- cpm(dge, normalized.lib.sizes = T)
 normalized_counts <- as.data.frame(normalized_counts)
 normalized_counts <- rownames_to_column(normalized_counts,var = "gene")
 #write csv
-write.csv(normalized_counts, "normalized_counts/bcin_norm_counts_all.csv", row.names = F, col.names = T)
+write.csv(normalized_counts, "bcin_norm_counts_all.csv", row.names = F, col.names = T)
 
 ####### Make norm_counts_expressed for host ========================================
 
@@ -181,7 +183,7 @@ removed_genes_host2$removal_reason <- "low readcount"
 removed_genes_host2 <- removed_genes_host2 %>% rename(gene = removed_genes_host2)
 removed_genes_host$removal_reason <- "no readcount"
 removed_genes_host <- rbind(removed_genes_host, removed_genes_host2)
-removed_genes_host %>% write.csv("normalized_counts/host_removed_genes.csv", row.names = F)
+removed_genes_host %>% write.csv("host_removed_genes.csv", row.names = F)
 
 #visualize cpm frequencies
 cpms <- log2(cpm(dge) + 1)
@@ -204,7 +206,7 @@ normalized_counts <- as.data.frame(normalized_counts)
 normalized_counts <- rownames_to_column(normalized_counts,var = "gene")
 
 #write csv
-write.csv(normalized_counts, "normalized_counts/host_norm_counts_expressed.csv", row.names = F, col.names = T)
+write.csv(normalized_counts, "host_norm_counts_expressed.csv", row.names = F, col.names = T)
 
 ####### Make norm_counts_expressed for Botrytis ========================================
 
@@ -255,7 +257,7 @@ removed_genes_bcin2$removal_reason <- "low readcount"
 removed_genes_bcin2 <- removed_genes_bcin2 %>% rename(gene = removed_genes_bcin2)
 removed_genes_bcin$removal_reason <- "no readcount"
 removed_genes_bcin <- rbind(removed_genes_bcin, removed_genes_bcin2)
-removed_genes_bcin %>% write.csv("normalized_counts/bcin_removed_genes.csv", row.names = F)
+removed_genes_bcin %>% write.csv("bcin_removed_genes.csv", row.names = F)
 
 #visualize cpm frequencies
 cpms <- log2(cpm(dge) + 1)
@@ -278,8 +280,8 @@ normalized_counts <- as.data.frame(normalized_counts)
 normalized_counts <- rownames_to_column(normalized_counts,var = "gene")
 
 #write csv
-write.csv(normalized_counts, "normalized_counts/bcin_norm_counts_expressed.csv", row.names = F, col.names = T)
+write.csv(normalized_counts, "bcin_norm_counts_expressed.csv", row.names = F, col.names = T)
 
-
+setwd("../../")
 
 
