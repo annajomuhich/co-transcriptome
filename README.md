@@ -69,7 +69,11 @@ output:
 
 Then put normalized.matrix through the mr2mods pipeline. (https://github.itap.purdue.edu/jwisecav/mr2mods)
 
+Run your sbatch command like this:
+
+`sbatch sbatch_mr2mods.sh path/to/normalized.matrix path/to/outputdir/`
+
 ## Step 6: mr2mods_network_reformat.R
 
-Reformat the output from mr2mods.
+Reformat the output from mr2mods. This puts decay rates together and joins with gene annotations.
 
