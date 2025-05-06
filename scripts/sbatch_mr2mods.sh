@@ -24,12 +24,12 @@ echo "[$(date)] Finished PCC/MR table generation."
 # Load necessary modules
 module load jdk/23.0.1
 
-# Call networks with varying density thresholds
+# Call networks with varying decay rates
 cd "$OUTPUT_DIR" || exit 1
 for d in "${D_VALUES[@]}"; do
-  echo "[$(date)] Starting network/module creation with density threshold $d..."
+  echo "[$(date)] Starting network/module creation with decay rate $d..."
   python3 "$SCRIPT_DIR/create_network_and_modules.py" -i "$OUTPUT_DIR/expr.mr" -c "$SCRIPT_DIR/cluster_one-1.0.jar" -d "$d"
-  echo "[$(date)] Finished network/module creation with density threshold $d."
+  echo "[$(date)] Finished network/module creation with decay rate $d."
 done
 
 echo "[$(date)] All tasks completed."
