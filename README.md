@@ -5,6 +5,7 @@
 This is to remove bad QC or outlier samples before further processing/modeling. Use results from MultiQC and PCAs to determine what to remove. Needs to be adjusted per dataset
 
 input: /raw_reads/all_samples/readcounts.csv
+
 output: /raw_reads/badQC_removed/readcounts.csv
 
 ## Step 2: readcount_transf_norm.R
@@ -12,6 +13,7 @@ output: /raw_reads/badQC_removed/readcounts.csv
 This script cleans up the readcount data, performs TMM normalization, and calculates cpm for each organism within each sample. Needs to be adjusted per dataset.
 
 input: /raw_reads/badQC_removed/readcounts.csv
+
 output: /normalized_counts/
 - host_norm_counts_all.csv (zero-read genes removed)
 - host_norm_counts_expressed.csv (low read count genes removed, 0HAI Mock removed)
@@ -59,6 +61,7 @@ Prepare dataset for mr2mods pipeline.
 input:
 - host_norm_counts_expressed.csv
 - bcin_norm_counts_expressed.csv
+
 output:
 - normalized.matrix
 
