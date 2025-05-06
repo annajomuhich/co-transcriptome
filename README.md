@@ -20,7 +20,7 @@ output: /normalized_counts/
 - bcin_norm_counts_expressed.csv
 - bcin_removed_genes.csv
 
-## model_means.R - Run Generalized Linear Mixed Model with Negative Binomial on host reads
+## Step 3a: model_means.R - Run Generalized Linear Mixed Model with Negative Binomial on host reads
 
 This script inputs counts, sample IDs, and batch information for one host species and outputs for each gene:
 
@@ -32,7 +32,7 @@ Run your sbatch command like this (you don't need to hard-code input files into 
 
 `sbatch sbatch_modelmeans.sh /path/to/counts.csv /path/to/sampleIDs.csv /path/to/batch.csv /path/to/output_dir/`
 
-## bcin_genemodel.R - Run Generalized Linear Mixed Model with Negatie Binomial on botrytis reads
+## Step 3b: bcin_genemodel.R - Run Generalized Linear Mixed Model with Negatie Binomial on botrytis reads
 
 This script inputs counts, sample IDs, and batch information for 2 host species and outputs for each gene:
 
@@ -51,3 +51,22 @@ sbatch sbatch_bcin_genemodel.sh \
 /path/to/batch1.csv /path/to/batch2.csv \
 /path/to/outputdir/
 ```
+
+## Step 4: mr2mods_dataset_setup.R
+
+Prepare dataset for mr2mods pipeline. 
+
+input:
+- host_norm_counts_expressed.csv
+- bcin_norm_counts_expressed.csv
+output:
+- normalized.matrix
+
+## Step 5: mr2mods
+
+Then put normalized.matrix through the mr2mods pipeline. (https://github.itap.purdue.edu/jwisecav/mr2mods)
+
+## Step 6: mr2mods_network_reformat.R
+
+Reformat the output from mr2mods.
+
