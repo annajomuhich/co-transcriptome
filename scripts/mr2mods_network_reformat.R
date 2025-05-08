@@ -1,19 +1,30 @@
-##### Network Reformatting
-##### IT - Vigna unguiculata
-##### December 2024 AJM
+##### Network Reformatting from mr2mods output
+##### May 2025 AJM
 
-# Load required libraries
+### =============== ADJUST INPUTS HERE ===============
+
+input_path <- "./remove_7isos/raw_networks/Pv/" #dir where your indiv decay rate csvs are
+output_path <- "./remove_7isos/reformatted_networks/Pv/"
+
+hostref_path <- "~/UCDavis/Klieb_Lab/Projects/Fabaceae/Fab_Manuscript/data/gene_descriptions/Pvulgaris_442_v2.1.annotation_info.txt"
+bcinref_path <- "~/UCDavis/Klieb_Lab/Projects/Fabaceae/Fab_Manuscript/data/gene_descriptions/Bcin_Annotations_Full_transcript.csv"
+
+#define column names to retain from host gene descriptions
+host_geneID <- "locusName"
+host_genename <- "arabi-symbol"
+host_genedesc <- "arabi-defline"
+
+### =============== Load libraries and data ===============
 library(tidyverse)
 
-path <- "./combined_analysis/mr2mods/vubc_networks/"
+d5 <- read.csv(paste0(input_path, "expr.mr_005.modules.csv"))
+d10 <- read.csv(paste0(input_path, "expr.mr_010.modules.csv"))
+d25 <- read.csv(paste0(input_path, "expr.mr_025.modules.csv"))
+d50 <- read.csv(paste0(input_path, "expr.mr_050.modules.csv"))
+d100 <- read.csv(paste0(input_path, "expr.mr_100.modules.csv"))
 
-d5 <- read.csv(paste0(path, "expr.mr_005.modules.csv"))
-d10 <- read.csv(paste0(path, "expr.mr_010.modules.csv"))
-d25 <- read.csv(paste0(path, "expr.mr_025.modules.csv"))
-d50 <- read.csv(paste0(path, "expr.mr_050.modules.csv"))
-d100 <- read.csv(paste0(path, "expr.mr_100.modules.csv"))
+### =============== Loop to reformat by decay rate ===============
 
-###LOOP TO REFORMAT SEVERAL DATAFRAMES, 5-100
 # Create a vector of dataframe names
 dataframe_names <- c("d5", "d10", "d25", "d50", "d100")
 
@@ -39,48 +50,49 @@ d50$decay_rate <- "50"
 d100$decay_rate <- "100"
 df <- rbind(d5, d10, d25, d50, d100)
 
-##### Let's assign gene descriptions
+### =============== Assign annotations ===============
 #Got Pv gene descriptions from Phytozome
 #Got the gene descriptions for Bcin from our google drive https://docs.google.com/spreadsheets/d/1em56HZLFOhC0-J_i1PARy9haOlQbv-M9/edit?usp=drive_link&ouid=113501740728630706254&rtpof=true&sd=true
 #read them in:
-vu_desc <- read_tsv("annotation/Vunguiculata_540_v1.2.annotation_info.txt")
-bcin_desc <- read.csv("annotation/Bcin_Annotations_Full_transcript.csv")
+host_desc <- read_tsv(hostref_path)
+bcin_desc <- read.csv(bcinref_path)
 #select columns we need
-### NOTE: Vu annotation also has best hits for clamy and rice! For now just looking at arabidopsis
-vu_desc <- vu_desc %>% select(locusName, `Best-hit-arabi-name`, `Best-hit-arabi-defline`)
+### NOTE: host annotation also has best hits for clamy and rice! For now just looking at arabidopsis
+host_desc <- host_desc %>% select(host_geneID, host_genename, host_genedesc)
 bcin_desc <- bcin_desc %>% select(X.Gene.ID., X.Gene.Name.or.Symbol., X.PFam.Description.)
 #rename columns
-colnames(vu_desc) <- c("gene", "gene_name", "gene_desc")
+colnames(host_desc) <- c("gene", "gene_name", "gene_desc")
 colnames(bcin_desc) <- c("gene", "gene_name", "gene_desc")
 #remove duplicate genes in the reference
 #This just keeps the first time the gene shows up in the annotation
 bcin_desc <- bcin_desc[!duplicated(bcin_desc$gene), ]
-vu_desc <- vu_desc[!duplicated(vu_desc$gene), ]
-#bind vu and bcin gene descriptions together
-gene_desc <- rbind(vu_desc, bcin_desc)
+host_desc <- host_desc[!duplicated(host_desc$gene), ]
+#bind host and bcin gene descriptions together
+gene_desc <- rbind(host_desc, bcin_desc)
 #need to remove the decimals from Bcin gene codes before joining
-remove_decimal <- function(string) {
-	sub("\\.\\d+$", "", string)
-}
+	remove_decimal <- function(string) {
+		sub("\\.\\d+$", "", string)
+	}
 df$gene <- sapply(df$gene, remove_decimal)
-
 #join gene descriptions onto cluster info
 df <- left_join(df, gene_desc, by = "gene")
+
+### =============== Reformat and save ===============
 
 #make cluster_full column and rearrange
 df <- df %>%
 	mutate(cluster_full = paste0("d", decay_rate, "_", Cluster)) %>%
 	select(cluster_full, everything())
 
-# Filtering to include only clusters that contain both cowpea and botrytis genes
-filtered_df <- df %>%
-	group_by(cluster_full) %>%
-	filter(any(startsWith(gene, "V")) & any(startsWith(gene, "B"))) %>%
-	ungroup()
+# # Filtering to include only clusters that contain both cowpea and botrytis genes
+# filtered_df <- df %>%
+# 	group_by(cluster_full) %>%
+# 	filter(any(startsWith(gene, "V")) & any(startsWith(gene, "B"))) %>%
+# 	ungroup()
 
 #Saving a copy of both the full clusters and the cross kingdom clusters
-dir.create(paste0(path,"reformatted_networks/"))
-write.csv(df, paste0(path,"reformatted_networks/all_clusters.csv"), row.names = FALSE)
-write.csv(filtered_df, paste0(path, "reformatted_networks/all_vubc_clusters.csv"), row.names = F)
+dir.create(output_path, recursive = T)
+write.csv(df, paste0(output_path,"all_clusters.csv"), row.names = FALSE)
+#write.csv(filtered_df, paste0(path, "reformatted_networks/all_hostbc_clusters.csv"), row.names = F)
 
 
