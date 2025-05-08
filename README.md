@@ -77,3 +77,6 @@ Run your sbatch command like this:
 
 Reformat the output from mr2mods. This puts decay rates together and joins with gene annotations.
 
+## Step 7: network_reg.R
+
+Combines with DEG data to assign regulation status to networks. Combines networks from the two datasets.
