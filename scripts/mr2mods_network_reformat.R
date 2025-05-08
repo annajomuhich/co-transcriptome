@@ -10,9 +10,9 @@ hostref_path <- "~/UCDavis/Klieb_Lab/Projects/Fabaceae/Fab_Manuscript/data/gene_
 bcinref_path <- "~/UCDavis/Klieb_Lab/Projects/Fabaceae/Fab_Manuscript/data/gene_descriptions/Bcin_Annotations_Full_transcript.csv"
 
 #define column names to retain from host gene descriptions
-host_geneID <- "locusName"
-host_genename <- "arabi-symbol"
-host_genedesc <- "arabi-defline"
+host_geneID <- "locusName" #for Pv
+host_genename <- "arabi-symbol" #for Pv
+host_genedesc <- "arabi-defline" #for Pv
 
 ### =============== Load libraries and data ===============
 library(tidyverse)
