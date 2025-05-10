@@ -18,7 +18,7 @@ PVCOUNTS_FILE=$3
 VUCOUNTS_FILE=$4
 OUTPUT_DIR=$5
 
-Rscript ~/co-transcriptome/scripts/bcin_genemodel.R \
+Rscript ~/co-transcriptome/scripts/lesion_expr_model.R \
 "$LESIONSIZE_FILE" \
 "$BCCOUNTS_FILE" \
 "$PVCOUNTS_FILE" \
