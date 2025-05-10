@@ -134,7 +134,7 @@ for (gene in genes) {
 #write results
 dir.create(output_path)
 
-failed_genes <- as.data.frame(failed_genes) %>% t() %>% rename(failed_genes = V1)
+failed_genes <- as.data.frame(failed_genes) %>% t()
 row.names(failed_genes) <- NULL
 colnames(failed_genes) <- "failed_genes"
 failed_genes %>% write.csv(paste0(output_path, "failed_Bcgenes.csv"), row.names = F)
@@ -242,7 +242,7 @@ for (gene in genes) {
 	})
 }
 
-failed_genes <- as.data.frame(failed_genes) %>% t() %>% rename(failed_genes = V1)
+failed_genes <- as.data.frame(failed_genes) %>% t()
 row.names(failed_genes) <- NULL
 colnames(failed_genes) <- "failed_genes"
 failed_genes %>% write.csv(paste0(output_path, "failed_Pvgenes.csv"), row.names = F)
@@ -330,7 +330,7 @@ for (gene in genes) {
 	})
 }
 
-failed_genes <- as.data.frame(failed_genes) %>% t() %>% rename(failed_genes = V1)
+failed_genes <- as.data.frame(failed_genes) %>% t()
 row.names(failed_genes) <- NULL
 colnames(failed_genes) <- "failed_genes"
 failed_genes %>% write.csv(paste0(output_path, "failed_Vugenes.csv"), row.names = F)
