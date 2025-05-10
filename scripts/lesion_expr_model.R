@@ -12,8 +12,8 @@ vu_expr_path <- args[4] # e.g. adjusted_emmeans.csv
 output_path <- args[5] 		
 
 # Ensure output directory ends with a slash (for safe concatenation)
-if (!grepl("/$", output_dir)) {
-	output_dir <- paste0(output_dir, "/")
+if (!grepl("/$", output_path)) {
+	output_path <- paste0(output_path, "/")
 }
 
 ##### ============= Load data and libraries ===== 
