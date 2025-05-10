@@ -21,9 +21,13 @@ if (!grepl("/$", output_path)) {
 library(tidyverse)
 library(lme4)
 
+message("loading lesion data from ", paste0(lesion_path))
 lesion <- read.csv(lesion_path)
+message("loading bcin expression data from ", paste0(bcin_expr_path))
 bcin_expr <- read.csv(bcin_expr_path)
+message("loading pv expression data from ", paste0(pv_expr_path))
 pv_expr <- read.csv(pv_expr_path)
+message("loading vu expression data from ", paste0(vu_expr_path))
 vu_expr <- read.csv(vu_expr_path)
 
 ##### =============== Reformat lesion data ==================
@@ -48,9 +52,6 @@ df$host <- as.factor(df$host)
 
 #get list of transcripts to loop through
 genes <- colnames(df)[grep("^Bcin", colnames(df))]
-
-#subset for testing
-genes <- genes[1:10]
 
 #set up dataframe with first gene in the list
 gene <- genes[1]
@@ -168,9 +169,6 @@ df <- pv_df
 #get list of transcripts to loop through
 genes <- colnames(df)[grep("^Phvul", colnames(df))]
 
-#subset for testing
-genes <- genes[1:10]
-
 #set up dataframe with first gene in the list
 gene <- genes[1]
 
@@ -255,9 +253,6 @@ df <- vu_df
 
 #get list of transcripts to loop through
 genes <- colnames(df)[grep("^Vigun", colnames(df))]
-
-#subset for testing
-genes <- genes[1:10]
 
 #set up dataframe with first gene in the list
 gene <- genes[1]
