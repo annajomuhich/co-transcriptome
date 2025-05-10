@@ -80,3 +80,34 @@ Reformat the output from mr2mods. This puts decay rates together and joins with 
 ## Step 7: network_reg.R
 
 Combines with DEG data to assign regulation status to networks. Combines networks from the two datasets.
+
+## Step 8: lesion_expr_model.R
+
+Generates anova tables with variance for models
+
+`lesion_size ~ gene_expression * host` for Botrytis
+
+and
+
+`lesion_size ~ gene_expression` for both hosts
+
+input:
+- cucfab_lsm.csv (lesion sizes)
+- bcin_adjusted_emmeans.csv
+- adjusted_emmeans.csv for one host
+- adjusted_emmeans.csv for a second host
+
+output:
+- lesion_Bcexpr_anova.csv
+- lesion_Pvexpr_anova.csv
+- lesion_Vuexpr_anova.csv
+
+```
+sbatch sbatch_lesion_expr.sh \
+/path/to/lesionsizes.csv \	#arg 1
+/path/to/bcin_counts.csv \	#arg 2
+/path/to/pv_counts.csv \		#arg 3
+/path/to/vu_counts.csv \		#arg 4
+/path/to/outputdir/					#arg 5
+```
+
