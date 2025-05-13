@@ -85,29 +85,25 @@ Combines with DEG data to assign regulation status to networks. Combines network
 
 Generates anova tables with variance for models
 
-`lesion_size ~ gene_expression * host` for Botrytis
-
-and
-
-`lesion_size ~ gene_expression` for both hosts
+`lesion_size ~ gene_expression * host`
 
 input:
 - cucfab_lsm.csv (lesion sizes)
 - bcin_adjusted_emmeans.csv
-- adjusted_emmeans.csv for one host
-- adjusted_emmeans.csv for a second host
+- host_ortho_expressed.csv (expression data of 1:1 orthologs of the two hosts)
 
 output:
 - lesion_Bcexpr_anova.csv
-- lesion_Pvexpr_anova.csv
-- lesion_Vuexpr_anova.csv
+- lesion_hostexpr_anova.csv
 
 ```
 sbatch sbatch_lesion_expr.sh \
 /path/to/lesionsizes.csv \	#arg 1
 /path/to/bcin_counts.csv \	#arg 2
-/path/to/pv_counts.csv \		#arg 3
-/path/to/vu_counts.csv \		#arg 4
-/path/to/outputdir/					#arg 5
+/path/to/host_counts.csv \		#arg 3
+/path/to/outputdir/					#arg 4
 ```
 
+## Step 9: FDR.R
+
+FDR correction

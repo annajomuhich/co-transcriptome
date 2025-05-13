@@ -7,9 +7,8 @@ args <- commandArgs(trailingOnly = TRUE)
 #assign input files to specific variables
 lesion_path <- args[1]		#e.g. cucfab_lsm.csv
 bcin_expr_path <- args[2]   # e.g. bcin_adjusted_emmeans.csv
-pv_expr_path <- args[3] # e.g. adjusted_emmeans.csv
-vu_expr_path <- args[4] # e.g. adjusted_emmeans.csv
-output_path <- args[5] 		
+host_expr_path <- args[3] # e.g. host_ortho_expr.csv
+output_path <- args[4] 		
 
 # Ensure output directory ends with a slash (for safe concatenation)
 if (!grepl("/$", output_path)) {
@@ -25,10 +24,8 @@ message("loading lesion data from ", paste0(lesion_path))
 lesion <- read.csv(lesion_path)
 message("loading bcin expression data from ", paste0(bcin_expr_path))
 bcin_expr <- read.csv(bcin_expr_path)
-message("loading pv expression data from ", paste0(pv_expr_path))
-pv_expr <- read.csv(pv_expr_path)
-message("loading vu expression data from ", paste0(vu_expr_path))
-vu_expr <- read.csv(vu_expr_path)
+message("loading host expression data from ", paste0(host_expr_path))
+host_expr <- read.csv(host_expr_path)
 
 ##### =============== Reformat lesion data ==================
 
@@ -58,33 +55,24 @@ gene <- genes[1]
 
 message(paste("modeling", gene))
 
-#Note: this one wasn't working, I think because you can't assign continuous variables as random effects
-#formula <- as.formula(lesion_size ~ (1|Bcin01g00010) + host + (Bcin01g00010 * host))
-
 formula <- as.formula(paste("lesion_size ~", gene, "* host"))
 
 model <- lm(formula, data = df) #works
 #extract anova table
-anova <- print(car::Anova(model)) #save to object. this also displays on output
-anova <- rownames_to_column(anova, var = "variable") #get column for variable category
-
-#gather variance data
-fixed_var <- (diag(vcov(model)))
-# fixed_var is a named numeric vector from diag(vcov(model))
-percent_var <- 100 * fixed_var / sum(fixed_var)
-# Put into a data frame for clarity
-fixed_var_df <- data.frame(
-	term = names(fixed_var),
-	variance = percent_var)
-fixed_var_df <- fixed_var_df %>%
-	mutate(variable = gsub("hostcowpea", "host", term)) %>%
-	select(!term)
-
-#join to anova data
-anova <- full_join(anova, fixed_var_df, by = "variable")
-anova <- anova %>%
-	mutate(variable = gsub(paste(gene), "gene_expression", variable))
+anova <- car::Anova(model)
+anova <- as.data.frame(anova)
+anova <- tibble::rownames_to_column(anova, var = "variable")
 anova$gene <- gene
+
+# calculate variance percentage from sum of squares
+anova <- anova %>%
+	mutate(variance = `Sum Sq` / sum(`Sum Sq`) * 100) %>%
+	mutate(variable = case_when(
+		variable == gene ~ "gene_expression",
+		variable == "host" ~ "host",
+		variable == paste0(gene, ":host") ~ "gene_expression:host",
+		TRUE ~ variable)) %>%
+	mutate(Rsquared = summary(model)$r.squared)
 anova <- anova %>% select(gene, everything())
 
 anova_all <- anova #initialize df for combined anovas
@@ -101,26 +89,21 @@ for (gene in genes) {
 		formula <- as.formula(paste("lesion_size ~", gene, "* host"))
 		
 		model <- lm(formula, data = df)
-		
-		# extract ANOVA table
-		anova <- car::Anova(model)  # don't wrap in print(), this returns the object
-		anova <- tibble::rownames_to_column(as.data.frame(anova), var = "variable")
-		
-		# gather variance data
-		fixed_var <- diag(vcov(model))
-		percent_var <- 100 * fixed_var / sum(fixed_var)
-		fixed_var_df <- data.frame(
-			term = names(fixed_var),
-			variance = percent_var
-		) %>%
-			mutate(variable = gsub("hostcowpea", "host", term)) %>%
-			select(-term)
-		
-		# join to ANOVA data
-		anova <- dplyr::full_join(anova, fixed_var_df, by = "variable") %>%
-			mutate(variable = gsub(gene, "gene_expression", variable))
-		
+		#extract anova table
+		anova <- car::Anova(model)
+		anova <- as.data.frame(anova)
+		anova <- tibble::rownames_to_column(anova, var = "variable")
 		anova$gene <- gene
+		
+		# calculate variance percentage and clean variable names
+		anova <- anova %>%
+			mutate(variance = `Sum Sq` / sum(`Sum Sq`) * 100) %>%
+			mutate(variable = case_when(
+				variable == gene ~ "gene_expression",
+				variable == "host" ~ "host",
+				variable == paste0(gene, ":host") ~ "gene_expression:host",
+				TRUE ~ variable)) %>%
+			mutate(Rsquared = summary(model)$r.squared)
 		anova <- dplyr::select(anova, gene, everything())
 		
 		# append to growing ANOVA dataframe
@@ -144,27 +127,17 @@ anova_all %>% write.csv(paste0(output_path, "lesion_Bcexpr_anova.csv"), row.name
 
 ##### ================ Reformat data - Host ==========================
 
-pv_expr <- pv_expr %>% select(-infected) %>% filter(iso_name != "Mock")
-vu_expr <- vu_expr %>% select(-infected) %>% filter(iso_name != "Mock")
+host_expr <- host_expr %>% filter(iso_name != "Mock")
 
-pv_lesion <- lesion %>% filter(genotype == "UCC")
-vu_lesion <- lesion %>% filter(genotype == "IT")
+lesion <- lesion %>%
+	mutate(host = if_else(genotype == "UCC", "Pv", "Vu")) %>%
+	select(!genotype)
 
-pv_df <- left_join(pv_lesion, pv_expr, by = "iso_name") %>%
-	mutate(host = if_else(genotype == "UCC", "common bean", NA)) %>%
-	select(iso_name, host, lesion_size, everything()) %>%
-	select(!genotype) %>%
-	filter(iso_name != "Mock_48HAI")
+df <- left_join(host_expr, lesion, by = c("iso_name", "host")) %>%
+	select(iso_name, host, lesion_size, everything())
 
-vu_df <- left_join(vu_lesion, vu_expr, by = "iso_name") %>%
-	mutate(host = if_else(genotype == "IT", "cowpea", NA)) %>%
-	select(iso_name, host, lesion_size, everything()) %>%
-	select(!genotype) %>%
-	filter(iso_name != "Mock_48HAI")
 
-###### Loop - Pv model ======================================
-
-df <- pv_df
+###### Loop - Pv/Vu 1:1 ortholog model ======================================
 
 #get list of transcripts to loop through
 genes <- colnames(df)[grep("^Phvul", colnames(df))]
@@ -174,27 +147,23 @@ gene <- genes[1]
 
 message(paste("modeling", gene))
 
-formula <- as.formula(paste("lesion_size ~", gene))
+formula <- as.formula(paste("lesion_size ~", gene, "* host"))
 
 model <- lm(formula, data = df) #works
 #extract anova table
-anova <- print(car::Anova(model)) #save to object. this also displays on output
-anova <- rownames_to_column(anova, var = "variable") #get column for variable category
-
-#gather variance data
-fixed_var <- (diag(vcov(model)))
-# fixed_var is a named numeric vector from diag(vcov(model))
-percent_var <- 100 * fixed_var / sum(fixed_var)
-# Put into a data frame for clarity
-fixed_var_df <- data.frame(
-	variable = names(fixed_var),
-	variance = percent_var)
-
-#join to anova data
-anova <- full_join(anova, fixed_var_df, by = "variable")
-anova <- anova %>%
-	mutate(variable = gsub(paste(gene), "gene_expression", variable))
+anova <- car::Anova(model)
+anova <- as.data.frame(anova)
+anova <- tibble::rownames_to_column(anova, var = "variable")
 anova$gene <- gene
+
+# calculate variance percentage and clean variable names
+anova <- anova %>%
+	mutate(variance = `Sum Sq` / sum(`Sum Sq`) * 100) %>%
+	mutate(variable = case_when(
+		variable == gene ~ "gene_expression",
+		variable == paste0(gene, ":host") ~ "gene_expression:host",
+		TRUE ~ variable)) %>%
+	mutate(Rsquared = summary(model)$r.squared)
 anova <- anova %>% select(gene, everything())
 
 anova_all <- anova #initialize df for combined anovas
@@ -208,28 +177,25 @@ genes <- genes[-1]
 for (gene in genes) {
 	message(paste("modeling", gene))
 	tryCatch({
-		formula <- as.formula(paste("lesion_size ~", gene))
+		formula <- as.formula(paste("lesion_size ~", gene, "* host"))
 		
-		model <- lm(formula, data = df) #works
+		model <- lm(formula, data = df)
 		#extract anova table
-		anova <- print(car::Anova(model)) #save to object. this also displays on output
-		anova <- rownames_to_column(anova, var = "variable") #get column for variable category
-		
-		#gather variance data
-		fixed_var <- (diag(vcov(model)))
-		# fixed_var is a named numeric vector from diag(vcov(model))
-		percent_var <- 100 * fixed_var / sum(fixed_var)
-		# Put into a data frame for clarity
-		fixed_var_df <- data.frame(
-			variable = names(fixed_var),
-			variance = percent_var)
-		
-		#join to anova data
-		anova <- full_join(anova, fixed_var_df, by = "variable")
-		anova <- anova %>%
-			mutate(variable = gsub(paste(gene), "gene_expression", variable))
+		anova <- car::Anova(model)
+		anova <- as.data.frame(anova)
+		anova <- tibble::rownames_to_column(anova, var = "variable")
 		anova$gene <- gene
-		anova <- anova %>% select(gene, everything())
+		
+		# calculate variance percentage and clean variable names
+		anova <- anova %>%
+			mutate(variance = `Sum Sq` / sum(`Sum Sq`) * 100) %>%
+			mutate(variable = case_when(
+				variable == gene ~ "gene_expression",
+				variable == "host" ~ "host",
+				variable == paste0(gene, ":host") ~ "gene_expression:host",
+				TRUE ~ variable)) %>%
+			mutate(Rsquared = summary(model)$r.squared)
+		anova <- dplyr::select(anova, gene, everything())
 		
 		# append to growing ANOVA dataframe
 		anova_all <- rbind(anova_all, anova)
@@ -240,95 +206,6 @@ for (gene in genes) {
 	})
 }
 
-# failed_genes <- as.data.frame(failed_genes) %>% t()
-# row.names(failed_genes) <- NULL
-# colnames(failed_genes) <- "failed_genes"
-failed_genes %>% write.csv(paste0(output_path, "failed_Pvgenes.csv"), row.names = F)
+failed_genes %>% write.csv(paste0(output_path, "failed_hostgenes.csv"), row.names = F)
 
-anova_all %>% write.csv(paste0(output_path, "lesion_Pvexpr_anova.csv"), row.names = F)
-
-###### Loop - Vu model ======================================
-
-df <- vu_df
-
-#get list of transcripts to loop through
-genes <- colnames(df)[grep("^Vigun", colnames(df))]
-
-#set up dataframe with first gene in the list
-gene <- genes[1]
-
-message(paste("modeling", gene))
-
-formula <- as.formula(paste("lesion_size ~", gene))
-
-model <- lm(formula, data = df) #works
-#extract anova table
-anova <- print(car::Anova(model)) #save to object. this also displays on output
-anova <- rownames_to_column(anova, var = "variable") #get column for variable category
-
-#gather variance data
-fixed_var <- (diag(vcov(model)))
-# fixed_var is a named numeric vector from diag(vcov(model))
-percent_var <- 100 * fixed_var / sum(fixed_var)
-# Put into a data frame for clarity
-fixed_var_df <- data.frame(
-	variable = names(fixed_var),
-	variance = percent_var)
-
-#join to anova data
-anova <- full_join(anova, fixed_var_df, by = "variable")
-anova <- anova %>%
-	mutate(variable = gsub(paste(gene), "gene_expression", variable))
-anova$gene <- gene
-anova <- anova %>% select(gene, everything())
-
-anova_all <- anova #initialize df for combined anovas
-
-#define list for failed genes
-failed_genes <- list()
-
-#adjust gene list
-genes <- genes[-1]
-
-for (gene in genes) {
-	message(paste("modeling", gene))
-	tryCatch({
-		formula <- as.formula(paste("lesion_size ~", gene))
-		
-		model <- lm(formula, data = df) #works
-		#extract anova table
-		anova <- print(car::Anova(model)) #save to object. this also displays on output
-		anova <- rownames_to_column(anova, var = "variable") #get column for variable category
-		
-		#gather variance data
-		fixed_var <- (diag(vcov(model)))
-		# fixed_var is a named numeric vector from diag(vcov(model))
-		percent_var <- 100 * fixed_var / sum(fixed_var)
-		# Put into a data frame for clarity
-		fixed_var_df <- data.frame(
-			variable = names(fixed_var),
-			variance = percent_var)
-		
-		#join to anova data
-		anova <- full_join(anova, fixed_var_df, by = "variable")
-		anova <- anova %>%
-			mutate(variable = gsub(paste(gene), "gene_expression", variable))
-		anova$gene <- gene
-		anova <- anova %>% select(gene, everything())
-		
-		# append to growing ANOVA dataframe
-		anova_all <- rbind(anova_all, anova)
-		
-	}, error = function(e) {
-		message(paste("Error encountered for gene:", gene, "Skipping..."))
-		failed_genes <<- c(failed_genes, gene)
-	})
-}
-
-# failed_genes <- as.data.frame(failed_genes) %>% t()
-# row.names(failed_genes) <- NULL
-# colnames(failed_genes) <- "failed_genes"
-failed_genes %>% write.csv(paste0(output_path, "failed_Vugenes.csv"), row.names = F)
-
-anova_all %>% write.csv(paste0(output_path, "lesion_Vuexpr_anova.csv"), row.names = F)
-
+anova_all %>% write.csv(paste0(output_path, "lesion_hostexpr_anova.csv"), row.names = F)
