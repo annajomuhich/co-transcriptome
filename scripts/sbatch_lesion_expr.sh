@@ -14,15 +14,11 @@ module load R
 # Define input file paths
 LESIONSIZE_FILE=$1
 BCCOUNTS_FILE=$2
-PVCOUNTS_FILE=$3
-VUCOUNTS_FILE=$4
-ORTHOLOG_FILE=$5
-OUTPUT_DIR=$6
+HOST_EXPR_FILE=$3
+OUTPUT_DIR=$4
 
 Rscript ~/co-transcriptome/scripts/lesion_expr_model.R \
 "$LESIONSIZE_FILE" \
 "$BCCOUNTS_FILE" \
-"$PVCOUNTS_FILE" \
-"$VUCOUNTS_FILE" \
-"$ORTHOLOG_FILE" \
+"$HOST_EXPR_FILE" \
 "$OUTPUT_DIR"

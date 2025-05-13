@@ -89,12 +89,16 @@ Generates anova tables with variance for models
 
 input:
 - cucfab_lsm.csv (lesion sizes)
-- bcin_adjusted_emmeans.csv
+- bcin_adjusted_emmeans.csv (bcin expression data)
 - host_ortho_expressed.csv (expression data of 1:1 orthologs of the two hosts)
 
 output:
 - lesion_Bcexpr_anova.csv
 - lesion_hostexpr_anova.csv
+
+Note: this only takes about 15 minutes to run so can run it locally. sbatch script is included if needed.
+
+Arguments as follows:
 
 ```
 sbatch sbatch_lesion_expr.sh \
