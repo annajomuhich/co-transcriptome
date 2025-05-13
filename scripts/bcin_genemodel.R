@@ -61,9 +61,7 @@ sample_key <- left_join(sample_key, seq_batch, by = "sample_ID")
 
 
 ### Reformat count data ======================
-#remove host genes
-pv <- pv %>% filter(startsWith(gene, "B"))
-vu <- vu %>% filter(startsWith(gene, "B"))
+
 #join dfs, but only retain genes that are present in both datasets
 df <- inner_join(pv, vu, by = "gene") #this dropped ~350-400 genes for Fabales
 #pivot longer
@@ -294,12 +292,25 @@ for (gene in genes) {
 	})
 }
 
+#Do FDR correction (BH)
+# Split data by variable type
+anova_split <- split(anova_all, anova_all$variable)
+# Apply FDR correction to each variable group
+anova_fdr <- lapply(anova_split, function(x) {
+  p_values <- x$`Pr(>Chisq)`
+  x$p_adj <- p.adjust(p_values, method = "BH")
+  return(x)})
+# Recombine into single dataframe
+anova_corrected <- do.call(rbind, anova_fdr)
+# Reset row names
+rownames(anova_corrected) <- NULL
+
 #write out results
 
 message("Writing results to output directory: ", output_dir)
 dir.create(output_dir)
 write.csv(emm_df, paste0(output_dir, "bcin_adjusted_emmeans.csv"), row.names = F)
 write.csv(SE_df, paste0(output_dir, "bcin_adjusted_SE.csv"), row.names = F)
-write.csv(anova_all, paste0(output_dir, "bcin_anova.csv"), row.names = F)
+write.csv(anova_corrected, paste0(output_dir, "bcin_anova.csv"), row.names = F)
 write.csv(DEG_all, paste0(output_dir, "bcin_DEGs.csv"), row.names = F)
 write.csv(failed_genes, paste0(output_dir, "failed_genes.csv"), row.names = FALSE)

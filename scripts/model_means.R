@@ -303,9 +303,22 @@ for (gene in genes) {
 	})
 }
 
+#Do FDR correction (BH)
+# Split data by variable type
+anova_split <- split(anova_all, anova_all$variable)
+# Apply FDR correction to each variable group
+anova_fdr <- lapply(anova_split, function(x) {
+	p_values <- x$`Pr(>Chisq)`
+	x$p_adj <- p.adjust(p_values, method = "BH")
+	return(x)})
+# Recombine into single dataframe
+anova_corrected <- do.call(rbind, anova_fdr)
+# Reset row names
+rownames(anova_corrected) <- NULL
+
 #write out results
 dir.create(output_dir)
-write.csv(anova_all, paste0(output_dir, "anova.csv"), row.names = F)
+write.csv(anova_corrected, paste0(output_dir, "anova.csv"), row.names = F)
 write.csv(emm_df, paste0(output_dir, "adjusted_emmeans.csv"), row.names = F)
 write.csv(SE_df, paste0(output_dir, "adjusted_SE.csv"), row.names = F)
 write.csv(inf_DEG_all, paste0(output_dir, "DEGs_infected.csv"), row.names = F)

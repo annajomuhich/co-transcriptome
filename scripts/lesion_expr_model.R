@@ -64,7 +64,15 @@ anova <- as.data.frame(anova)
 anova <- tibble::rownames_to_column(anova, var = "variable")
 anova$gene <- gene
 
-# calculate variance percentage from sum of squares
+# Print diagnostic information for first gene
+if(gene == genes[1]) {
+	message("ANOVA structure for first gene:")
+	print(str(anova))
+	message("ANOVA column names:")
+	print(names(anova))
+}
+
+# calculate variance percentage and clean variable names
 anova <- anova %>%
 	mutate(variance = `Sum Sq` / sum(`Sum Sq`) * 100) %>%
 	mutate(variable = case_when(
@@ -74,6 +82,14 @@ anova <- anova %>%
 		TRUE ~ variable)) %>%
 	mutate(Rsquared = summary(model)$r.squared)
 anova <- anova %>% select(gene, everything())
+
+# Print transformed structure for first gene
+if(gene == genes[1]) {
+	message("Transformed ANOVA structure:")
+	print(str(anova))
+	message("Final column names:")
+	print(names(anova))
+}
 
 anova_all <- anova #initialize df for combined anovas
 
@@ -115,6 +131,19 @@ for (gene in genes) {
 	})
 }
 
+#Do FDR correction (BH)
+# Split data by variable type
+anova_split <- split(anova_all, anova_all$variable)
+# Apply FDR correction to each variable group
+anova_fdr <- lapply(anova_split, function(x) {
+  p_values <- x$`Pr..F.`
+  x$p_adj <- p.adjust(p_values, method = "BH")
+  return(x)})
+# Recombine into single dataframe
+anova_corrected <- do.call(rbind, anova_fdr)
+# Reset row names
+rownames(anova_corrected) <- NULL
+
 #write results
 dir.create(output_path)
 
@@ -123,7 +152,7 @@ dir.create(output_path)
 # colnames(failed_genes) <- "failed_genes"
 failed_genes %>% write.csv(paste0(output_path, "failed_Bcgenes.csv"), row.names = F)
 
-anova_all %>% write.csv(paste0(output_path, "lesion_Bcexpr_anova.csv"), row.names = F)
+anova_corrected %>% write.csv(paste0(output_path, "lesion_Bcexpr_anova.csv"), row.names = F)
 
 ##### ================ Reformat data - Host ==========================
 
@@ -205,6 +234,19 @@ for (gene in genes) {
 		failed_genes <<- c(failed_genes, gene)
 	})
 }
+
+#Do FDR correction (BH)
+# Split data by variable type
+anova_split <- split(anova_all, anova_all$variable)
+# Apply FDR correction to each variable group
+anova_fdr <- lapply(anova_split, function(x) {
+  p_values <- x$`Pr..F.`
+  x$p_adj <- p.adjust(p_values, method = "BH")
+  return(x)})
+# Recombine into single dataframe
+anova_corrected <- do.call(rbind, anova_fdr)
+# Reset row names
+rownames(anova_corrected) <- NULL
 
 failed_genes %>% write.csv(paste0(output_path, "failed_hostgenes.csv"), row.names = F)
 
