@@ -111,3 +111,9 @@ sbatch sbatch_lesion_expr.sh \
 ## Step 9: FDR.R
 
 FDR correction
+
+Though note that I've since integrated this correction into the above
+
+- bcin_genemodel.R
+- model_means.R
+- lesion_expr_model.R
