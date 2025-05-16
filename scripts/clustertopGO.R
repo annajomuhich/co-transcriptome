@@ -4,6 +4,9 @@
 ######### May 2025
 ######### AJM & LDF
 
+#Install packages ==============================================
+#BiocManager::install("topGO")
+
 #Load packages ==============================================
 library(topGO)
 library(dplyr)
