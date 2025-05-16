@@ -93,7 +93,7 @@ output:
 
 ## Step 7b: clustertopGO.R
 
-Runs GO enrichment analysis on clusters. This uses a Fisher test to determine significant overrepresentation of particular GO terms within a network in comparison to the gene universe (i.e. GO terms of all the genes in the genome).
+Runs GO enrichment analysis on clusters. This uses a Fisher test to determine significant overrepresentation of particular GO terms within a network in comparison to the gene universe (i.e. GO terms of all the genes in the genome). Takes 1-2 hours for my dataset.
 
 input:
 - all_clusters.csv (all detected networks for a given host & botrytis dataset)
