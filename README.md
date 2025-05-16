@@ -108,11 +108,11 @@ sbatch sbatch_lesion_expr.sh \
 /path/to/outputdir/					#arg 4
 ```
 
-## Step 9: FDR.R
+## Step X: FDR.R and DEG_padj.R
 
 FDR correction
 
-Though note that I've since integrated this correction into the above
+Though note that I've since integrated this correction into the above so don't need these
 
 - bcin_genemodel.R
 - model_means.R
