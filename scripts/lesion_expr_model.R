@@ -81,6 +81,7 @@ anova <- anova %>%
 		variable == paste0(gene, ":host") ~ "gene_expression:host",
 		TRUE ~ variable)) %>%
 	mutate(Rsquared = summary(model)$r.squared)
+
 anova <- anova %>% select(gene, everything())
 
 # Print transformed structure for first gene
@@ -136,7 +137,7 @@ for (gene in genes) {
 anova_split <- split(anova_all, anova_all$variable)
 # Apply FDR correction to each variable group
 anova_fdr <- lapply(anova_split, function(x) {
-  p_values <- x$`Pr..F.`
+  p_values <- x$`Pr(>F)`
   x$p_adj <- p.adjust(p_values, method = "BH")
   return(x)})
 # Recombine into single dataframe
@@ -240,7 +241,7 @@ for (gene in genes) {
 anova_split <- split(anova_all, anova_all$variable)
 # Apply FDR correction to each variable group
 anova_fdr <- lapply(anova_split, function(x) {
-  p_values <- x$`Pr..F.`
+  p_values <- x$`Pr(>F)`
   x$p_adj <- p.adjust(p_values, method = "BH")
   return(x)})
 # Recombine into single dataframe
@@ -250,4 +251,4 @@ rownames(anova_corrected) <- NULL
 
 failed_genes %>% write.csv(paste0(output_path, "failed_hostgenes.csv"), row.names = F)
 
-anova_all %>% write.csv(paste0(output_path, "lesion_hostexpr_anova.csv"), row.names = F)
+anova_corrected %>% write.csv(paste0(output_path, "lesion_hostexpr_anova.csv"), row.names = F)

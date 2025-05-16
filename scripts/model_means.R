@@ -187,6 +187,7 @@ inf_DEG <- inf_DEG %>% select(gene, everything())
 inf_DEG <- inf_DEG %>%
 	rename(ttest_pvalue = p.value)
 #join with the chisq p value
+#NOTE 5/14/25: I want to adapt this so it's the adjusted p value next time I run
 chisq_p <- anova %>% 
 	filter(variable == "infected") %>%
 	select(gene, `Pr(>Chisq)`)
