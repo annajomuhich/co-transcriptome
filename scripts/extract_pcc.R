@@ -91,7 +91,7 @@ for (i in 1:length(clusts)) {
 	#specify filename, path, and save
 	filename <- paste0("d", decay, "_", cluster, "_pccs.csv")
 
-	write.csv(df, paste0(output_path,filename))
+	write.csv(df, paste0(output_path,filename), row.names = F)
 }
 
 
