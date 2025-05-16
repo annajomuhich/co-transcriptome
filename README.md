@@ -113,7 +113,7 @@ path/to/output_dir/             # arg 4
 
 ## Step 7c: ext_PCC.R
 
-Extracts PCC values for genes within a network/cluster. Can input a single file with multiple clusters, differentiated by 'Cluster' column. Extracted PCCs can be used for drawing/visualizing networks.
+Extracts PCC values for genes within a network/cluster. Can input a single file with multiple clusters, differentiated by 'Cluster' column. However can only deal with one mr2mods /expr.mr/ output at a time, so need to run different hosts separately. Extracted PCCs can be used for drawing/visualizing networks.
 
 input:
 - clusters file (.csv containing select networks you want PCCs for)
