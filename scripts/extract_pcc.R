@@ -29,6 +29,9 @@ output_path <- args[3]
 #Get networks to extract PCCs from
 networks <- read.csv(cluster_path)
 
+#make output directory
+dir.create(output_path)
+
 #go into directory with PCCs
 #farm wd
 setwd(pcc_path)
@@ -38,6 +41,7 @@ clusts <- unique(networks$Cluster)
 
 #Loop through each listed cluster
 for (i in 1:length(clusts)) {
+	message(paste("Starting Cluster:", clusts[i], sep = " "))
 	#set cluster variable
 	cluster <- clusts[i]
 	#filter the networks by that cluster
