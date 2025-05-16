@@ -1,7 +1,7 @@
 ######### clustertopGO - GO enrichment analysis on gene coexpression clusters
 ######### For plant host and Botrytis co-transcriptome
 ######### Phaseolus vulgaris (common bean)
-######### February 2025
+######### May 2025
 ######### AJM & LDF
 
 #Install packages ==============================================
@@ -11,23 +11,43 @@ library(tidyr)
 library(stringr)
 library(readr)
 
-#Define paths (Make changes here) =============================
-#input - reference annotation files
-host_annot_path <- "input/Pvulgaris_442_v2.1.annotation_info.csv"
-bcin_annot_path <- "input/Bcin_Annotations_Full_transcript.csv"
-#input - cluster data
-clust_path <- "input/all_clusters.csv"
-#output - make output directory
-dir.create("output")
-#output - host topGO result
-host_topGO_path <- "output/hostcluster_topGO.csv"
-bcin_topGO_path <- "output/bcincluster_topGO.csv"
+#Define paths =============================
+# Get command line arguments
+args <- commandArgs(trailingOnly = TRUE)
+
+# Check if correct number of arguments provided
+if (length(args) != 4) {
+  stop("Required arguments: 
+       1) host annotation file path
+       2) bcin annotation file path 
+       3) cluster data file path
+       4) output directory path")
+}
+
+# Check if output directory path ends with a slash, add if missing
+if (!endsWith(args[4], "/")) {
+  args[4] <- paste0(args[4], "/")
+}
+
+# Input - reference annotation files
+host_annot_path <- args[1]
+bcin_annot_path <- args[2]
+# Input - cluster data
+clust_path <- args[3]
+# Output directory
+dir.create(args[4])
+# Output - topGO results
+host_topGO_path <- file.path(args[4], "hostcluster_topGO.csv")
+bcin_topGO_path <- file.path(args[4], "bcincluster_topGO.csv")
 
 #GeneID2GO Creation - Host ==========================================
 # Load annotation
 df_annot <- read_csv(host_annot_path)
 # Reformat annotation
-#df_annot <- df_annot %>% rename(gene = locusName) #this was only req'd for cowpea annotation
+# Check if 'locusName' exists and rename to 'gene' if it does
+if("locusName" %in% colnames(df_annot) && !("gene" %in% colnames(df_annot))) {
+  df_annot <- df_annot %>% rename(gene = locusName)
+}
 df_annot <- df_annot %>%
   distinct(gene, .keep_all = TRUE) %>% # Removing duplicates based on 'gene'
   dplyr::select(gene, GO) # Selecting only the 'gene' and 'GO' columns
