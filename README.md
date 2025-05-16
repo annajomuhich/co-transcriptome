@@ -77,9 +77,39 @@ Run your sbatch command like this:
 
 Reformat the output from mr2mods. This puts decay rates together and joins with gene annotations.
 
-## Step 7: network_reg.R
+output:
+- all_clusters.csv
+
+## Step 7a: network_reg.R
 
 Combines with DEG data to assign regulation status to networks. Combines networks from the two datasets.
+
+input:
+- all_clusters.csv
+
+output:
+- network_reg.csv
+- network_reg_sig.csv (filtered for significant networks)
+
+## Step 7b: clustertopGO.R
+
+Runs GO enrichment analysis on clusters. This uses a Fisher test to determine significant overrepresentation of particular GO terms within a network in comparison to the gene universe (i.e. GO terms of all the genes in the genome).
+
+input:
+- all_clusters.csv (all detected networks for a given host & botrytis dataset)
+- host and botrytis annotation files
+
+output:
+- hostcluster_topGO.csv
+- bcincluster_topGO.csv
+
+```
+sbatch sbatch_clustertopGO.sh \
+path/to/host_annotation.csv \   # arg 1
+path/to/bcin_annotation.csv \   # arg 2
+path/to/all_clusters.csv \      # arg 3
+path/to/output_dir/             # arg 4
+```
 
 ## Step 8: lesion_expr_model.R
 
