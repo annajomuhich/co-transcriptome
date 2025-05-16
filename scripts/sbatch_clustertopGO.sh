@@ -11,5 +11,9 @@
 
 module load R
 
-R CMD BATCH scripts/clustertopGO.R
+Rscript scripts/clustertopGO.R \
+  "$1" \  # host annotation file path
+  "$2" \  # bcin annotation file path
+  "$3" \  # cluster data file path
+  "$4"    # output directory path
 
