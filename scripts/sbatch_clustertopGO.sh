@@ -11,9 +11,14 @@
 
 module load R
 
-Rscript ~/co-transcriptome/scripts/clustertopGO.R \
-  "$1" \  # host annotation file path
-  "$2" \  # bcin annotation file path
-  "$3" \  # cluster data file path
-  "$4"    # output directory path
+# Define input file paths
+HOSTANNOT_FILE=$1
+BCINANNOT_FILE=$2
+CLUST_FILE=$3
+OUTPUT_DIR=$4
 
+Rscript ~/co-transcriptome/scripts/clustertopGO.R \
+"$HOSTANNOT_FILE" \
+"$BCINANNOT_FILE" \
+"$CLUST_FILE" \
+"$OUTPUT_DIR"
