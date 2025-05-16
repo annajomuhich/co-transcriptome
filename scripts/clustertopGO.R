@@ -4,7 +4,7 @@
 ######### May 2025
 ######### AJM & LDF
 
-#Install packages ==============================================
+#Load packages ==============================================
 library(topGO)
 library(dplyr)
 library(tidyr)
