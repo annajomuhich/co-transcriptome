@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -D /home/ajmuhich/kliebengrp/ext_pcc/ext_pcc_1/
+#SBATCH -D /home/ajmuhich/kliebengrp/ext_pcc/
 #SBATCH -o /home/ajmuhich/slurm-log/extpcc_stdout-%j.txt
 #SBATCH -e /home/ajmuhich/slurm-log/extpcc_stderr-%j.txt
 #SBATCH -J ext_pcc
@@ -10,4 +10,14 @@
 #SBATCH --mail-user=ajmuhich@ucdavis.edu
 
 module load R
-R CMD BATCH ~/kliebengrp/ext_pcc/ext_pcc_1/scripts/extract_pcc.R
+
+# Define input file paths
+CLUST_FILE=$1
+PCC_DIR=$2
+OUTPUT_DIR=$3
+
+Rscript ~/co-transcriptome/scripts/extract_pcc.R \
+"$CLUST_FILE" \
+"$PCC_DIR" \
+"$OUTPUT_DIR"
+

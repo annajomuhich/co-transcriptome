@@ -1,15 +1,29 @@
+######### Extract PCCs from networks
+######### May 2025 AJM
+
+#Load packages
 library(tidyverse)
 
-#farm WD for parallel jobs
-setwd("~/kliebengrp/ext_pcc/ext_pcc_1")
+#Get command line arguments
+args <- commandArgs(trailingOnly = TRUE)
 
-### MAKE CHANGES HERE:
-#define path to cluster list
-cluster_path <- "SM_clusters/pv_CHS_ofinterest.csv"
-#define path to PCCs
-pcc_path <- "~/kliebengrp/pvbc_coex/output/expr.mr"
-#define SM tag for output (e.g. terp, bot, boa, etc)
-SM <- "chs"
+# Check if correct number of arguments provided
+if (length(args) != 3) {
+	stop("Required arguments: 
+		1) cluster data file path
+		2) PCCs directory path
+		3) output directory path")
+}
+
+# Check if output directory path ends with a slash, add if missing
+if (!endsWith(args[3], "/")) {
+  args[3] <- paste0(args[3], "/")
+}
+
+# Define input file paths
+cluster_path <- args[1]
+pcc_path <- args[2]
+output_path <- args[3]
 
 ### ------------------- Extract PCCs -------------------------
 #Get networks to extract PCCs from
@@ -71,9 +85,9 @@ for (i in 1:length(clusts)) {
 		df <- rbind(df, source_targets)
 	}
 	#specify filename, path, and save
-	filename <- paste0("d", decay, "_", cluster, "_", SM, ".csv")
-	path <- paste0("~/kliebengrp/ext_pcc/ext_pcc_1/output/")
-	write.csv(df, paste0(path,filename))
+	filename <- paste0("d", decay, "_", cluster, ".csv")
+
+	write.csv(df, paste0(output_path,filename))
 }
 
 
