@@ -11,7 +11,7 @@
 
 module load R
 
-Rscript scripts/clustertopGO.R \
+Rscript ~/co-transcriptome/scripts/clustertopGO.R \
   "$1" \  # host annotation file path
   "$2" \  # bcin annotation file path
   "$3" \  # cluster data file path
