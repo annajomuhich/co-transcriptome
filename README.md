@@ -111,6 +111,26 @@ path/to/all_clusters.csv \      # arg 3
 path/to/output_dir/             # arg 4
 ```
 
+## Step 7c: ext_PCC.R
+
+Extracts PCC values for genes within a network/cluster. Can input a single file with multiple clusters, differentiated by 'Cluster' column. Extracted PCCs can be used for drawing/visualizing networks.
+
+input:
+- clusters file (.csv containing select networks you want PCCs for)
+    - must have columns `Cluster`, `decay_rate`, and `gene`
+- /expr.mr/ (directory from mr2mods, contains all PCCs for all combos of genes in the dataset)
+    - note, this is a large directory. I can't store these locally.
+
+output:
+- e.g. d5_101_pccs.csv (will output a separate file for each unique cluster in the input file)
+
+```
+sbatch sbatch_extpcc.sh \
+path/to/cluster_file.csv \
+path/to/expr.mr/ \
+path/to/output_dir/
+```
+
 ## Step 8: lesion_expr_model.R
 
 Generates anova tables with variance for models

@@ -85,7 +85,7 @@ for (i in 1:length(clusts)) {
 		df <- rbind(df, source_targets)
 	}
 	#specify filename, path, and save
-	filename <- paste0("d", decay, "_", cluster, ".csv")
+	filename <- paste0("d", decay, "_", cluster, "_pccs.csv")
 
 	write.csv(df, paste0(output_path,filename))
 }
