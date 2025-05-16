@@ -42,7 +42,13 @@ bcin_topGO_path <- file.path(args[4], "bcincluster_topGO.csv")
 
 #GeneID2GO Creation - Host ==========================================
 # Load annotation
-df_annot <- read_csv(host_annot_path)
+if (endsWith(host_annot_path, ".csv")) {
+  df_annot <- read_csv(host_annot_path)
+} else if (endsWith(host_annot_path, ".txt")) {
+  df_annot <- read_delim(host_annot_path, delim="\t")
+} else {
+  stop("Host annotation file must end in .csv or .txt")
+}
 # Reformat annotation
 # Check if 'locusName' exists and rename to 'gene' if it does
 if("locusName" %in% colnames(df_annot) && !("gene" %in% colnames(df_annot))) {
