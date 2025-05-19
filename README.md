@@ -93,15 +93,17 @@ output:
 
 ## Step 7b: clustertopGO.R
 
-Runs GO enrichment analysis on clusters. This uses a Fisher test to determine significant overrepresentation of particular GO terms within a network in comparison to the gene universe (i.e. GO terms of all the genes in the genome). Takes 1-2 hours for my dataset.
+Runs GO enrichment analysis on clusters. This uses a Fisher test to determine significant overrepresentation of particular GO terms within a network in comparison to the gene universe (i.e. GO terms of all the genes in the genome). Takes ~4 hours for my dataset.
 
 input:
 - all_clusters.csv (all detected networks for a given host & botrytis dataset)
 - host and botrytis annotation files
 
 output:
-- hostcluster_topGO.csv
-- bcincluster_topGO.csv
+- detailed GO enrichment results for all gene clusters:
+    - host_clustertopGO_all.csv
+    - bcin_clustertopGO_all.csv
+- clustertopGO_summary.csv (the top GO term for host and Botrytis for each network)
 
 ```
 sbatch sbatch_clustertopGO.sh \
@@ -114,6 +116,8 @@ path/to/output_dir/             # arg 4
 ## Step 7c: ext_PCC.R
 
 Extracts PCC values for genes within a network/cluster. Can input a single file with multiple clusters, differentiated by 'Cluster' column. However can only deal with one mr2mods /expr.mr/ output at a time, so need to run different hosts separately. Extracted PCCs can be used for drawing/visualizing networks.
+
+Doing this for all the d5 networks in the database only took ~2h but the big networks can take a really long time. Not advisable to just do this on all networks generated from the pipeline.
 
 input:
 - clusters file (.csv containing select networks you want PCCs for)
