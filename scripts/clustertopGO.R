@@ -37,11 +37,9 @@ host_annot_path <- args[1]
 bcin_annot_path <- args[2]
 # Input - cluster data
 clust_path <- args[3]
+output_path <- args[4]
 # Output directory
 dir.create(args[4])
-# Output - topGO results
-host_topGO_path <- file.path(args[4], "hostcluster_topGO.csv")
-bcin_topGO_path <- file.path(args[4], "bcincluster_topGO.csv")
 
 #GeneID2GO Creation - Host ==========================================
 # Load annotation
@@ -87,12 +85,16 @@ clust_host <- clust_host %>%
 # Selecting only the 'cluster_full' and 'gene' columns
 clust_host <- clust_host[, c("cluster_full", "gene")]
 
-# Setup for topGO loop ==========================================
-# Get a list of unique cluster names in the "cluster_full" column
-cluster_names <- unique(clust_host$cluster_full)
-
-#Creates new empty df table to insert data
-allRes_combined <- data.frame(GO.ID = character(),
+# Function to run topGO analysis on clusters
+run_topGO_analysis <- function(clust_data, geneID2GO, output_prefix) {
+  # Get unique cluster names
+  cluster_names <- unique(clust_data$cluster_full)
+  
+  #subset for testing REMOVE
+  cluster_names <- cluster_names[1:10]
+  
+  # Create empty dataframe for results
+  allRes_combined <- data.frame(GO.ID = character(),
                               Term = character(),
                               Annotated = numeric(),
                               Significant = numeric(),
@@ -101,40 +103,64 @@ allRes_combined <- data.frame(GO.ID = character(),
                               classicFisher = character(),
                               cluster = character(),
                               stringsAsFactors = FALSE)
-
-# Loop to run topGO on each cluster  =========================================================
-for (cluster_name in cluster_names) {
-  # Filter to only include the current cluster and remove duplicate gene rows
-  df_cluster <- clust_host %>%
-    filter(cluster_full == cluster_name) %>% distinct(gene, .keep_all = TRUE)
-  # Create new geneList 
-  geneNames <- names(geneID2GO) #get list of genes in the gene universe
-  myInterestingGenes <- df_cluster$gene #get list of genes in the cluster, i.e. our interesting genes
-  gene_list <- factor(as.integer(geneNames %in% myInterestingGenes)) #assign a binary integer factor (1 = cluster, 0 = not in cluster)
-  names(gene_list) <- geneNames #populate gene list with all the gene names
-  # topGO data object
-  GOdata <- new("topGOdata",
-                ontology = "MF", # Molecular Function (MF)
-                allGenes = gene_list, # The binary vector 
-                annot = annFUN.gene2GO, # Use the annotation function for gene-to-GO mapping
-                gene2GO = geneID2GO) # Your gene-to-GO mapping
-  # Enrichment Test
-  resultFisher <- runTest(GOdata, algorithm = "classic", statistic = "fisher") # Fisher test
-  #classical enrichment analysis that tests over representation of GO terms within the cluster
-  resultFisher
-  #Analysis of Results
-  #Generates df containing the top topGO terms identified by the elim algorithm
-  allRes <- GenTable(GOdata,
-                     classicFisher = resultFisher)
-  # Add the current cluster name as a new column in the allRes table
-  allRes$cluster <- cluster_name
-  # Append the current allRes (with cluster name) to the combined table
-  allRes_combined <- rbind(allRes_combined, allRes)
-  # Print a message confirming the cluster has been processed
-  message(paste("Cluster", cluster_name, "processed and added to allRes_combined table"))
+  
+  # Loop to run topGO on each cluster
+  for (cluster_name in cluster_names) {
+    message(paste("Processing cluster:", cluster_name))
+    tryCatch({
+      # Filter to only include the current cluster and remove duplicate gene rows
+      df_cluster <- clust_data %>%
+        filter(cluster_full == cluster_name) %>%
+        distinct(gene, .keep_all = TRUE)
+      
+      # Create new geneList 
+      geneNames <- names(geneID2GO)
+      myInterestingGenes <- df_cluster$gene
+      gene_list <- factor(as.integer(geneNames %in% myInterestingGenes))
+      names(gene_list) <- geneNames
+      
+      # topGO data object
+      suppressMessages(
+        GOdata <- new("topGOdata",
+                     ontology = "MF",
+                     allGenes = gene_list,
+                     annot = annFUN.gene2GO,
+                     gene2GO = geneID2GO)
+      )
+      
+      # Enrichment Test
+      suppressMessages(
+        resultFisher <- runTest(GOdata, algorithm = "classic", statistic = "fisher")
+      )
+      
+      # Analysis of Results
+      allRes <- GenTable(GOdata, classicFisher = resultFisher)
+      allRes$cluster <- cluster_name
+      allRes_combined <- rbind(allRes_combined, allRes)
+      
+      message(paste("Cluster", cluster_name, "processed successfully."))
+    }, error = function(e) {
+      message(paste("Error processing cluster", cluster_name, "- skipping. Error message:", e$message))
+    })
+  }
+  
+  # Write full results
+  message(paste("Writing full results to", paste0(output_path, output_prefix, "_clustertopGO_all.csv")))
+  allRes_combined %>% write.csv(paste0(output_path, output_prefix, "_clustertopGO_all.csv"), row.names = F)
+  
+  # Create and return summary
+  summary <- allRes_combined %>%
+    group_by(cluster) %>%
+    slice_min(order_by = classicFisher, n = 1, with_ties = FALSE) %>%
+    select(cluster, Term, classicFisher) %>%
+    rename(!!paste0(output_prefix, "_GO_FisherTest") := classicFisher,
+           !!paste0(output_prefix, "_GO_Term") := Term)
+  
+  return(summary)
 }
-allRes_combined %>% write.csv(host_topGO_path)
 
+# Run topGO analysis for host genes
+host_summary <- run_topGO_analysis(clust_host, geneID2GO, "host")
 
 #GeneID2GO Creation - Bcin ===================================================
 # Load annotation
@@ -183,55 +209,10 @@ clust_bcin <- clust_bcin %>%
 # Selecting only the 'cluster_full' and 'gene' columns
 clust_bcin <- clust_bcin[, c("cluster_full", "gene")]
 
-# Setup for topGO loop ==========================================
-# Get a list of unique cluster names in the "cluster_full" column
-cluster_names <- unique(clust_bcin$cluster_full)
+# Run topGO analysis for Bcin genes
+bcin_summary <- run_topGO_analysis(clust_bcin, geneID2GO, "bcin")
 
-#Creates new empty df table to insert data
-allRes_combined <- data.frame(GO.ID = character(),
-															Term = character(),
-															Annotated = numeric(),
-															Significant = numeric(),
-															Expected = numeric(),
-															`Rank in classicFisher` = numeric(),
-															classicFisher = character(),
-															cluster = character(),
-															stringsAsFactors = FALSE)
-
-# Loop to run topGO on each cluster  =========================================================
-#Error tolerant loop
-for (cluster_name in cluster_names) {
-	message(paste("Processing cluster:", cluster_name))
-	tryCatch({
-		# Filter to only include the current cluster and remove duplicate gene rows
-		df_cluster <- clust_bcin %>%
-			filter(cluster_full == cluster_name) %>%
-			distinct(gene, .keep_all = TRUE)
-		# Create new geneList 
-		geneNames <- names(geneID2GO) # Get list of genes in the gene universe
-		myInterestingGenes <- df_cluster$gene # Get list of genes in the cluster
-		gene_list <- factor(as.integer(geneNames %in% myInterestingGenes)) # Assign binary factor
-		names(gene_list) <- geneNames # Populate gene list with gene names
-		# topGO data object
-		GOdata <- new("topGOdata",
-									ontology = "MF", # Molecular Function
-									allGenes = gene_list, # Binary vector
-									annot = annFUN.gene2GO, # Annotation function
-									gene2GO = geneID2GO) # Gene-to-GO mapping
-		# Enrichment Test
-		resultFisher <- runTest(GOdata, algorithm = "classic", statistic = "fisher") 
-		# Analysis of Results
-		allRes <- GenTable(GOdata, classicFisher = resultFisher)
-		# Add the current cluster name as a new column in the allRes table
-		allRes$cluster <- cluster_name
-		# Append the current allRes (with cluster name) to the combined table
-		allRes_combined <- rbind(allRes_combined, allRes)
-		# Print a message confirming the cluster has been processed
-		message(paste("Cluster", cluster_name, "processed successfully."))
-	}, error = function(e) {
-		# If an error occurs, print a message and skip this cluster_name
-		message(paste("Error processing cluster", cluster_name, "- skipping. Error message:", e$message))
-	})
-}
-
-allRes_combined %>% write.csv(bcin_topGO_path)
+### Write combined host and bcin summary as one output 
+summary <- full_join(host_summary, bcin_summary, by = "cluster") %>%
+	arrange(cluster)
+summary %>% write.csv(paste0(output_path, "clustertopGO_summary.csv"), row.names = F)
