@@ -90,8 +90,8 @@ run_topGO_analysis <- function(clust_data, geneID2GO, output_prefix) {
   # Get unique cluster names
   cluster_names <- unique(clust_data$cluster_full)
   
-  #subset for testing REMOVE
-  cluster_names <- cluster_names[1:10]
+  # #subset for testing REMOVE
+  # cluster_names <- cluster_names[1:10]
   
   # Create empty dataframe for results
   allRes_combined <- data.frame(GO.ID = character(),
